@@ -15,7 +15,7 @@ A domain availability monitoring service built with **Laravel 12**, **MySQL 8**,
 
 | Layer      | Technology              |
 |------------|-------------------------|
-| Framework  | Laravel 12 (PHP 8.3)    |
+| Framework  | Laravel 13 (PHP 8.4)    |
 | Database   | MySQL 8.0               |
 | Cache/Queue| Redis 7                 |
 | Web server | Nginx 1.25              |
@@ -74,7 +74,7 @@ make test           # Run the test suite
 ```
 Browser → Nginx → PHP-FPM (app)
                        ↓
-                    MySQL (domains, check_logs)
+                    MySQL (users, domains, check_logs)
                     Redis (sessions, cache, queue)
                        ↓
 scheduler container → domains:check command → CheckDomainJob → queue worker
@@ -94,6 +94,7 @@ DB_DATABASE=uptime_monitor
 QUEUE_CONNECTION=redis
 CACHE_DRIVER=redis
 SESSION_DRIVER=redis
+MAIL_MAILER=smtp
 ```
 
 ## Database Schema
