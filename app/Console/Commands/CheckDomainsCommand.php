@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 
 class CheckDomainsCommand extends Command
 {
-    protected $signature   = 'domains:check {--domain=}';
+    protected $signature = 'domains:check {--domain=}';
+
     protected $description = 'Dispatch check jobs for all due domains';
 
     public function handle(): int
@@ -23,6 +24,7 @@ class CheckDomainsCommand extends Command
 
         if ($domains->isEmpty()) {
             $this->info('No domains due for checking.');
+
             return Command::SUCCESS;
         }
 

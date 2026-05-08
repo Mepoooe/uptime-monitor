@@ -20,15 +20,15 @@ class AuthTest extends TestCase
     public function test_user_can_register_with_valid_data(): void
     {
         $this->post(route('register'), [
-            'name'                  => 'Test User',
-            'email'                 => 'test@example.com',
-            'password'              => 'Password1!',
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'Password1!',
             'password_confirmation' => 'Password1!',
         ])
             ->assertRedirect(route('dashboard'));
 
         $this->assertDatabaseHas('users', [
-            'name'  => 'Test User',
+            'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
     }
@@ -38,9 +38,9 @@ class AuthTest extends TestCase
         User::factory()->create(['email' => 'taken@example.com']);
 
         $this->post(route('register'), [
-            'name'                  => 'Another User',
-            'email'                 => 'taken@example.com',
-            'password'              => 'Password1!',
+            'name' => 'Another User',
+            'email' => 'taken@example.com',
+            'password' => 'Password1!',
             'password_confirmation' => 'Password1!',
         ])
             ->assertSessionHasErrors('email');
@@ -49,9 +49,9 @@ class AuthTest extends TestCase
     public function test_registration_fails_when_passwords_do_not_match(): void
     {
         $this->post(route('register'), [
-            'name'                  => 'Test User',
-            'email'                 => 'test@example.com',
-            'password'              => 'Password1!',
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'Password1!',
             'password_confirmation' => 'different',
         ])
             ->assertSessionHasErrors('password');
@@ -68,12 +68,12 @@ class AuthTest extends TestCase
     public function test_user_can_log_in_with_valid_credentials(): void
     {
         $user = User::factory()->create([
-            'email'             => 'user@example.com',
+            'email' => 'user@example.com',
             'email_verified_at' => now(),
         ]);
 
         $this->post(route('login'), [
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => 'password',
         ])
             ->assertRedirect(route('dashboard'));
@@ -86,7 +86,7 @@ class AuthTest extends TestCase
         User::factory()->create(['email' => 'user@example.com']);
 
         $this->post(route('login'), [
-            'email'    => 'user@example.com',
+            'email' => 'user@example.com',
             'password' => 'wrongpassword',
         ])
             ->assertSessionHasErrors('email');
@@ -97,7 +97,7 @@ class AuthTest extends TestCase
     public function test_login_fails_with_nonexistent_email(): void
     {
         $this->post(route('login'), [
-            'email'    => 'nobody@example.com',
+            'email' => 'nobody@example.com',
             'password' => 'password',
         ])
             ->assertSessionHasErrors('email');

@@ -20,8 +20,8 @@ class CheckLog extends Model
     ];
 
     protected $casts = [
-        'checked_at'    => 'datetime',
-        'is_up'         => 'boolean',
+        'checked_at' => 'datetime',
+        'is_up' => 'boolean',
     ];
 
     public function domain(): BelongsTo

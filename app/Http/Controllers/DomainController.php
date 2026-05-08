@@ -30,12 +30,12 @@ class DomainController extends BaseController
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'url'            => ['required', 'url', 'max:500'],
-            'name'           => ['nullable', 'string', 'max:255'],
-            'check_method'   => ['required', 'in:GET,HEAD'],
-            'check_interval' => ['required', 'integer', 'in:' . implode(',', Domain::$intervals)],
-            'check_timeout'  => ['required', 'integer', 'min:1', 'max:60'],
-            'is_active'      => ['boolean'],
+            'url' => ['required', 'url', 'max:500'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'check_method' => ['required', 'in:GET,HEAD'],
+            'check_interval' => ['required', 'integer', 'in:'.implode(',', Domain::$intervals)],
+            'check_timeout' => ['required', 'integer', 'min:1', 'max:60'],
+            'is_active' => ['boolean'],
         ]);
 
         $domain = auth()->user()->domains()->create($data);
@@ -52,7 +52,7 @@ class DomainController extends BaseController
         $this->authorize('update', $domain);
 
         return view('domains.edit', [
-            'domain'    => $domain,
+            'domain' => $domain,
             'intervals' => Domain::$intervals,
         ]);
     }
@@ -62,12 +62,12 @@ class DomainController extends BaseController
         $this->authorize('update', $domain);
 
         $data = $request->validate([
-            'url'            => ['required', 'url', 'max:500'],
-            'name'           => ['nullable', 'string', 'max:255'],
-            'check_method'   => ['required', 'in:GET,HEAD'],
-            'check_interval' => ['required', 'integer', 'in:' . implode(',', Domain::$intervals)],
-            'check_timeout'  => ['required', 'integer', 'min:1', 'max:60'],
-            'is_active'      => ['boolean'],
+            'url' => ['required', 'url', 'max:500'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'check_method' => ['required', 'in:GET,HEAD'],
+            'check_interval' => ['required', 'integer', 'in:'.implode(',', Domain::$intervals)],
+            'check_timeout' => ['required', 'integer', 'min:1', 'max:60'],
+            'is_active' => ['boolean'],
         ]);
 
         $domain->update($data);

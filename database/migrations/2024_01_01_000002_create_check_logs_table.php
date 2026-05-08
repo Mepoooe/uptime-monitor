@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('is_up');
             $table->unsignedSmallInteger('status_code')->nullable();
             $table->unsignedInteger('response_time')->nullable()
-                  ->comment('Response time in ms');
+                ->comment('Response time in ms');
             $table->string('error')->nullable();
             $table->string('check_method', 10)->default('HEAD');
 

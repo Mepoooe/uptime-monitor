@@ -25,15 +25,15 @@ return new class extends Migration
             // Check settings
             $table->enum('check_method', ['GET', 'HEAD'])->default('HEAD');
             $table->unsignedSmallInteger('check_interval')->default(5)
-                  ->comment('Interval in minutes: 1,5,10,15,30,60');
+                ->comment('Interval in minutes: 1,5,10,15,30,60');
             $table->unsignedSmallInteger('check_timeout')->default(10)
-                  ->comment('Request timeout in seconds');
+                ->comment('Request timeout in seconds');
 
             // Status cache (denormalized for quick list view)
             $table->boolean('is_up')->nullable();
             $table->unsignedSmallInteger('last_status_code')->nullable();
             $table->unsignedInteger('last_response_time')->nullable()
-                  ->comment('Last response time in ms');
+                ->comment('Last response time in ms');
             $table->timestamp('last_checked_at')->nullable();
             $table->timestamp('status_changed_at')->nullable();
 

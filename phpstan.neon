@@ -1,0 +1,20 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - app
+        - config
+        - database
+        - routes
+
+    excludePaths:
+        - vendor
+        - storage
+        - bootstrap/cache
+
+    # Laravel-specific: allow dynamic properties on models and facades
+    checkMissingIterableValueType: false
+    checkGenericClassInNonGenericObjectType: false

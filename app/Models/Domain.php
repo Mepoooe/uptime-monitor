@@ -22,9 +22,9 @@ class Domain extends Model
     ];
 
     protected $casts = [
-        'is_active'         => 'boolean',
-        'is_up'             => 'boolean',
-        'last_checked_at'   => 'datetime',
+        'is_active' => 'boolean',
+        'is_up' => 'boolean',
+        'last_checked_at' => 'datetime',
         'status_changed_at' => 'datetime',
     ];
 
@@ -63,19 +63,19 @@ class Domain extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return match($this->is_up) {
-            true  => 'UP',
+        return match ($this->is_up) {
+            true => 'UP',
             false => 'DOWN',
-            null  => 'UNKNOWN',
+            null => 'UNKNOWN',
         };
     }
 
     public function getStatusColorAttribute(): string
     {
-        return match($this->is_up) {
-            true  => 'green',
+        return match ($this->is_up) {
+            true => 'green',
             false => 'red',
-            null  => 'gray',
+            null => 'gray',
         };
     }
 
@@ -90,7 +90,7 @@ class Domain extends Model
     {
         return $query->active()->where(function ($q) {
             $q->whereNull('last_checked_at')
-              ->orWhereRaw('DATE_ADD(last_checked_at, INTERVAL check_interval MINUTE) <= NOW()');
+                ->orWhereRaw('DATE_ADD(last_checked_at, INTERVAL check_interval MINUTE) <= NOW()');
         });
     }
 }
