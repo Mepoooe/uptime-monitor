@@ -53,7 +53,22 @@
         ],
         "test:coverage": [
             "@php artisan test --coverage"
-        ]
+        ],
+        "complete-update": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan optimize:clear",
+            "@php artisan migrate",
+            "php artisan responsecache:clear",
+            "php artisan cache:clear"
+        ],
+        "complete-install": [
+            "Composer\\Config::disableProcessTimeout",
+            "php artisan migrate:fresh --ansi",
+            "@complete-update"
+        ],
+        "phpcs": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpcs --standard=phpcs.xml",
+        "phpcbf": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpcbf --standard=phpcs.xml",
+        "phpstan": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpstan analyse --no-interaction --error-format=table -c phpstan.neon"
     },
     "extra": {
         "laravel": {

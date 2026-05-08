@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 
-class DashboardController extends BaseController
+class BaseController extends Controller
 {
     public function index(): View
     {

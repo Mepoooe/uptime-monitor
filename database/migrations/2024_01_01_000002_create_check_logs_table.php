@@ -6,9 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    private const TABLE_NAME = 'check_logs';
+
     public function up(): void
     {
-        Schema::create('check_logs', function (Blueprint $table) {
+        if (Schema::hasTable(self::TABLE_NAME)) {
+            return;
+        }
+
+        Schema::create(self::TABLE_NAME, function (Blueprint $table) {
             $table->id();
             $table->foreignId('domain_id')->constrained()->cascadeOnDelete();
 
@@ -27,6 +33,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('check_logs');
+        Schema::dropIfExists(self::TABLE_NAME);
     }
 };
