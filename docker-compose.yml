@@ -85,7 +85,7 @@ services:
     volumes:
       - .:/var/www
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
-    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    command: sh -c "composer install --no-interaction --no-dev && php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600"
     networks:
       - uptime_network
     depends_on:
@@ -104,7 +104,7 @@ services:
     volumes:
       - .:/var/www
       - ./docker/php/php.ini:/usr/local/etc/php/conf.d/local.ini
-    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+    command: sh -c "composer install --no-interaction --no-dev && while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
     networks:
       - uptime_network
     depends_on:

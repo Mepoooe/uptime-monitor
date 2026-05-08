@@ -66,7 +66,7 @@ make fresh          # Migrate fresh + seed
 make shell          # Bash in app container
 make logs           # Tail all logs
 make check          # Manually trigger domain checks
-make tinker         # Laravel Tinker
+make test           # Run the test suite
 ```
 
 ## Architecture
@@ -104,6 +104,50 @@ domains        — id, user_id, url, name, is_active, check_method, check_interv
                  is_up, last_status_code, last_response_time, last_checked_at, status_changed_at
 check_logs     — id, domain_id, checked_at, is_up, status_code, response_time, error, check_method
 ```
+
+## AI Agents (GitHub Copilot)
+
+Two custom Copilot agents are included in `.github/agents/` to assist with development.
+
+### `@Code Reviewer` — Review & fix code
+
+Audits PHP/Laravel files for bugs, security issues, and best practice violations. Read-only until it finds something to fix — no terminal access.
+
+**Example prompts:**
+```
+@Code Reviewer review app/Http/Controllers/DomainController.php
+@Code Reviewer check all models for mass assignment issues
+@Code Reviewer audit the auth and authorization layer
+@Code Reviewer review app/Jobs/CheckDomainJob.php for error handling issues
+```
+
+**What it checks:**
+- `$fillable` / `$guarded` on every Eloquent model
+- `authorize()` calls on destructive controller actions
+- `$request->validate()` on all user input
+- Raw queries, hardcoded credentials, missing `findOrFail()`
+- OWASP Top 10 (SQL injection, missing auth, mass assignment)
+
+### `@TDD` — Test-driven development
+
+Drives all new behavior through the red → green → refactor cycle. Writes the failing test first, then the minimum production code to pass it, then refactors.
+
+**Example prompts:**
+```
+@TDD add a test that a user cannot delete a domain they don't own
+@TDD write feature tests for DomainController store and destroy
+@TDD test that CheckDomainJob dispatches when a domain is created
+@TDD test that an inactive domain is skipped during scheduled checks
+```
+
+**How it works:**
+1. Writes a failing PHPUnit/Pest test
+2. Runs `php artisan test` — confirms red
+3. Writes minimal production code to go green
+4. Runs again — confirms green
+5. Refactors if needed, re-confirms green
+
+> Both agents are available in VS Code via the Copilot chat agent picker (`@` in chat).
 
 ## Demo
 

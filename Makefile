@@ -40,8 +40,11 @@ logs: ## Tail all container logs
 queue-restart: ## Restart queue worker
 	docker compose restart queue
 
-tinker: ## Open Laravel Tinker
-	docker compose exec app php artisan tinker
-
 check: ## Manually run domain checks
 	docker compose exec app php artisan domains:check
+
+test: ## Run the test suite
+	docker compose exec app php artisan test
+
+test-filter: ## Run tests matching a filter (usage: make test-filter FILTER=AuthTest)
+	docker compose exec app php artisan test --filter $(FILTER)

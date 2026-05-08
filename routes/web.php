@@ -14,4 +14,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('domains/{domain}/logs', [DomainController::class, 'logs'])->name('domains.logs');
 });
 
-require __DIR__ . '/auth.php';
+$authRoutes = __DIR__ . '/auth.php';
+
+if (file_exists($authRoutes)) {
+    require $authRoutes;
+}

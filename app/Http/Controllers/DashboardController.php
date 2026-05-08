@@ -14,8 +14,8 @@ class DashboardController extends Controller
 
         $stats = [
             'total'   => $domains->count(),
-            'up'      => $domains->where('is_up', true)->count(),
-            'down'    => $domains->where('is_up', false)->count(),
+            'up'      => $domains->whereStrict('is_up', true)->count(),
+            'down'    => $domains->whereStrict('is_up', false)->count(),
             'unknown' => $domains->whereNull('is_up')->count(),
         ];
 
