@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Jobs\CheckDomainJob;
+use App\Models\Domain;
+use Illuminate\Console\Command;
+
+class CheckDomainsCommand extends Command
+{
+    protected $signature   = 'domains:check {--domain=}';
+    protected $description = 'Dispatch check jobs for all due domains';
+
+    public function handle(): int
+    {
+        $query = Domain::due();
+
+        if ($domainId = $this->option('domain')) {
+            $query = Domain::active()->where('id', $domainId);
+        }
+
+        $domains = $query->get();
+
+        if ($domains->isEmpty()) {
+            $this->info('No domains due for checking.');
+            return Command::SUCCESS;
+        }
+
+        foreach ($domains as $domain) {
+            CheckDomainJob::dispatch($domain);
+            $this->line("  Dispatched: {$domain->url}");
+        }
+
+        $this->info("Dispatched {$domains->count()} check(s).");
+
+        return Command::SUCCESS;
+    }
+}
