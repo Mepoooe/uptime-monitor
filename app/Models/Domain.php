@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Events\Domain\DomainSaved;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -111,14 +112,14 @@ class Domain extends Model
         };
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeDue($query)
+    public function scopeDue(Builder $query): Builder
     {
-        return $query->active()->where(function ($q) {
+        return $query->active()->where(function (Builder $q): void {
             $q->whereNull('last_checked_at')
                 ->orWhereRaw('DATE_ADD(last_checked_at, INTERVAL check_interval MINUTE) <= NOW()');
         });
