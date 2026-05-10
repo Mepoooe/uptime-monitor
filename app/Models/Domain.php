@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use App\Events\Domain\DomainSaved;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,7 +33,14 @@ class Domain extends Model
 
     public static array $intervals = [1, 5, 10, 15, 30, 60];
 
-    // ─── Relations ────────────────────────────────────────────────
+    /**
+     * The event map for the model.
+     *
+     * @var array<string, string>
+     */
+    protected $dispatchesEvents = [
+        'saved' => DomainSaved::class,
+    ];
 
     public function user(): BelongsTo
     {
@@ -41,8 +51,6 @@ class Domain extends Model
     {
         return $this->hasMany(CheckLog::class)->orderByDesc('checked_at');
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────
 
     /** Returns true if domain is due for a check right now */
     public function isDue(): bool
@@ -78,8 +86,6 @@ class Domain extends Model
             null => 'gray',
         };
     }
-
-    // ─── Scopes ───────────────────────────────────────────────────
 
     public function scopeActive($query)
     {
