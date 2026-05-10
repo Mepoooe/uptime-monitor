@@ -34,7 +34,7 @@
         "post-install-cmd": [
             "@php -r \"is_dir('public') || mkdir('public', 0777, true); is_dir('storage/app/public') || mkdir('storage/app/public', 0777, true); is_dir('storage/framework/views') || mkdir('storage/framework/views', 0777, true); is_dir('storage/framework/cache/data') || mkdir('storage/framework/cache/data', 0777, true); is_dir('storage/framework/sessions') || mkdir('storage/framework/sessions', 0777, true); is_dir('bootstrap/cache') || mkdir('bootstrap/cache', 0777, true);\"",
             "@php artisan key:generate --ansi",
-            "@php artisan storage:link --ansi"
+            "@php artisan storage:link --ansi > /dev/null 2>&1 || true"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -67,8 +67,7 @@
             "php artisan migrate:fresh --ansi",
             "@complete-update"
         ],
-        "phpcs": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpcs --standard=phpcs.xml",
-        "phpcbf": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpcbf --standard=phpcs.xml",
+        "pint": "XDEBUG_MODE=off php -dxdebug.mode=off ./vendor/bin/pint",
         "phpstan": "XDEBUG_MODE=off php -dxdebug.mode=off vendor/bin/phpstan analyse --no-interaction --error-format=table -c phpstan.neon"
     },
     "extra": {

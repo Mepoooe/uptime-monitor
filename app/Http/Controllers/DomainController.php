@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CheckDomainJob;
 use App\Models\Domain;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DomainController extends BaseController
 {
+    use AuthorizesRequests;
+
     public function index(): View
     {
         $domains = auth()->user()
