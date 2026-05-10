@@ -7,7 +7,7 @@ namespace App\Console\Commands;
 use App\Jobs\CheckDomainJob;
 use App\Models\Domain;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class CheckDomainsCommand extends Command
 {
@@ -17,16 +17,19 @@ class CheckDomainsCommand extends Command
 
     public function handle(): int
     {
-        $query = Domain::due();
+        $query = Domain::query()->active();
 
         if ($domainId = $this->option('domain')) {
-            $query = Domain::active()->where('id', $domainId);
+            $query->where('id', $domainId);
         }
 
         /**
          * @var Collection<int, Domain> $domains
          */
-        $domains = $query->get();
+        $domains = $query
+            ->whereRaw('last_checked_at IS NULL OR last_checked_at <= NOW() - INTERVAL check_interval MINUTE')
+            ->get()
+            ->values();
 
         if ($domains->isEmpty()) {
             $this->info('No domains due for checking.');

@@ -69,6 +69,8 @@ make check          # Manually trigger domain checks
 make test           # Run the test suite
 ```
 
+
+
 ## Architecture
 
 ```
@@ -83,6 +85,16 @@ scheduler container → domains:check command → CheckDomainJob → queue worke
 - **scheduler** container runs `php artisan schedule:run` every 60 seconds
 - **queue** container processes `CheckDomainJob` using Guzzle HTTP client
 - Results stored in `check_logs`, domain status cached on `domains` table
+
+## Cron Job
+
+Add this to your cron for automatic scheduled checks:
+
+```cron
+* * * * * php /path-to-your-project/artisan schedule:run >> /dev/null 2>&1
+```
+
+This runs the Laravel Scheduler every minute, which dispatches `CheckDomainJob` for all due domains via queues.
 
 ## Environment Variables
 

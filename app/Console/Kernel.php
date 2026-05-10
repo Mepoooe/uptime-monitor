@@ -9,11 +9,7 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        // Run every minute — the command itself decides which domains are due
-        $schedule->command('domains:check')
-            ->everyMinute()
-            ->withoutOverlapping(5)
-            ->runInBackground();
+        // Schedules are defined in routes/console.php.
     }
 
     protected function commands(): void

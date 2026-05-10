@@ -85,6 +85,7 @@ class Domain extends Model
         }
 
         return $this->last_checked_at
+            ->copy()
             ->addMinutes($this->check_interval)
             ->isPast();
     }
@@ -115,13 +116,5 @@ class Domain extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
-    }
-
-    public function scopeDue(Builder $query): Builder
-    {
-        return $query->active()->where(function (Builder $q): void {
-            $q->whereNull('last_checked_at')
-                ->orWhereRaw('DATE_ADD(last_checked_at, INTERVAL check_interval MINUTE) <= NOW()');
-        });
     }
 }
