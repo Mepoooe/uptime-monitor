@@ -51,7 +51,7 @@ class CheckDomainJob implements ShouldQueue
         $previousStatus = $domain->is_up;
 
         $domain->updateQuietly([
-            'is_up' => $result['is_up'],
+            'is_up' => (int) $result['is_up'],
             'last_status_code' => $result['status_code'],
             'last_response_time' => $result['response_time'],
             'last_checked_at' => $checkedAt,

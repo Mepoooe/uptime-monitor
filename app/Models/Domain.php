@@ -33,6 +33,11 @@ class Domain extends Model
     use HasFactory;
 
     protected $fillable = [
+        'is_up',
+        'last_status_code',
+        'last_response_time',
+        'last_checked_at',
+        'status_changed_at',
         'user_id',
         'url',
         'name',
