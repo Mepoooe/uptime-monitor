@@ -43,10 +43,7 @@ class DomainController extends BaseController
             'is_active' => ['boolean'],
         ]);
 
-        $domain = auth()->user()->domains()->create($data);
-
-        // Immediately dispatch first check
-        CheckDomainJob::dispatch($domain->getKey());
+        auth()->user()->domains()->create($data);
 
         return redirect()->route('domains.index')
             ->with('success', 'Domain added and queued for first check.');

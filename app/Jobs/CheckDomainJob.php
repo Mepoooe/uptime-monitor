@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Commands\Domain\CheckDomain;
 use App\Models\CheckLog;
 use App\Models\Domain;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class CheckDomainJob implements ShouldQueue
 {
@@ -30,49 +28,34 @@ class CheckDomainJob implements ShouldQueue
         $domain = Domain::findOrFail($this->domainId);
 
         $checkedAt = now();
-        $isUp = false;
-        $statusCode = null;
-        $responseTime = null;
-        $error = null;
 
-        try {
-            $start = microtime(true);
+        $command = app()->make(CheckDomain::class, [
+            'checkTimeout' => $domain->check_timeout,
+            'checkMethod' => $domain->check_method,
+            'url' => $domain->url,
+        ]);
+        $command->execute();
+        $result = $command->getResult();
 
-            $response = Http::timeout($domain->check_timeout)
-                ->withOptions(['allow_redirects' => true])
-                ->send($domain->check_method, $domain->url);
-
-            $responseTime = (int) round((microtime(true) - $start) * 1000);
-            $statusCode = $response->status();
-            $isUp = $response->successful() || in_array($statusCode, [301, 302, 303, 307, 308]);
-
-        } catch (ConnectionException $e) {
-            $error = 'Connection failed: '.$e->getMessage();
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-            Log::error("Domain check failed [{$domain->url}]: {$e->getMessage()}");
-        }
-
-        // Save log
         CheckLog::create([
             'domain_id' => $domain->id,
             'checked_at' => $checkedAt,
-            'is_up' => $isUp,
-            'status_code' => $statusCode,
-            'response_time' => $responseTime,
-            'error' => $error,
+            'is_up' => $result['is_up'],
+            'status_code' => $result['status_code'],
+            'response_time' => $result['response_time'],
+            'error' => $result['error'],
             'check_method' => $domain->check_method,
         ]);
 
         // Update domain status cache
         $previousStatus = $domain->is_up;
 
-        $domain->update([
-            'is_up' => $isUp,
-            'last_status_code' => $statusCode,
-            'last_response_time' => $responseTime,
+        $domain->updateQuietly([
+            'is_up' => $result['is_up'],
+            'last_status_code' => $result['status_code'],
+            'last_response_time' => $result['response_time'],
             'last_checked_at' => $checkedAt,
-            'status_changed_at' => ($previousStatus !== $isUp) ? $checkedAt : $domain->status_changed_at,
+            'status_changed_at' => ($previousStatus !== $result['is_up']) ? $checkedAt : $domain->status_changed_at,
         ]);
     }
 }
