@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Jobs;
 
 use App\Models\CheckLog;
@@ -21,11 +23,11 @@ class CheckDomainJob implements ShouldQueue
 
     public int $timeout = 60;
 
-    public function __construct(private readonly Domain $domain) {}
+    public function __construct(private readonly int $domainId) {}
 
     public function handle(): void
     {
-        $domain = $this->domain;
+        $domain = Domain::findOrFail($this->domainId);
 
         $checkedAt = now();
         $isUp = false;

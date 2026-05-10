@@ -9,7 +9,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use \Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $url
+ * @property string|null $name
+ * @property bool $is_active
+ * @property bool|null $is_up
+ * @property int $check_interval
+ * @property int $check_timeout
+ * @property Carbon|null $last_checked_at
+ * @property Carbon|null $status_changed_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
+ * @property-read User $user
+ * @property-read \Illuminate\Database\Eloquent\Collection|CheckLog[] $checkLogs
+ */
 class Domain extends Model
 {
     use HasFactory;

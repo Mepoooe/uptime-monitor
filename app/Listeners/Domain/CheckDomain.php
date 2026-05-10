@@ -19,7 +19,7 @@ final class CheckDomain
         $domain = $event->domain;
 
         if ($domain->isDue()) {
-            Bus::dispatch(new CheckDomainJob($domain));
+            Bus::dispatch(new CheckDomainJob($domain->getKey()));
         }
     }
 }

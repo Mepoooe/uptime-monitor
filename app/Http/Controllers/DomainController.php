@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers;
 
 use App\Jobs\CheckDomainJob;
@@ -44,7 +46,7 @@ class DomainController extends BaseController
         $domain = auth()->user()->domains()->create($data);
 
         // Immediately dispatch first check
-        CheckDomainJob::dispatch($domain);
+        CheckDomainJob::dispatch($domain->getKey());
 
         return redirect()->route('domains.index')
             ->with('success', 'Domain added and queued for first check.');
@@ -91,7 +93,7 @@ class DomainController extends BaseController
     public function checkNow(Domain $domain): RedirectResponse
     {
         $this->authorize('update', $domain);
-        CheckDomainJob::dispatch($domain);
+        CheckDomainJob::dispatch($domain->getKey());
 
         return back()->with('success', 'Check queued.');
     }

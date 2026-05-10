@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Jobs\CheckDomainJob;
 use App\Models\Domain;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
 
 class CheckDomainsCommand extends Command
 {
@@ -20,6 +23,9 @@ class CheckDomainsCommand extends Command
             $query = Domain::active()->where('id', $domainId);
         }
 
+        /**
+         * @var Collection<int, Domain> $domains
+         */
         $domains = $query->get();
 
         if ($domains->isEmpty()) {
@@ -29,7 +35,7 @@ class CheckDomainsCommand extends Command
         }
 
         foreach ($domains as $domain) {
-            CheckDomainJob::dispatch($domain);
+            CheckDomainJob::dispatch($domain->getKey());
             $this->line("  Dispatched: {$domain->url}");
         }
 
