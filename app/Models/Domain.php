@@ -51,6 +51,7 @@ class Domain extends Model
         'is_active' => 'boolean',
         'is_up' => 'boolean',
         'last_checked_at' => 'datetime',
+        'check_interval' => 'integer',
         'status_changed_at' => 'datetime',
     ];
 
