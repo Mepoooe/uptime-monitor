@@ -1,0 +1,172 @@
+FROM ubuntu:22.04
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TERM=xterm-256color
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    nginx \
+    mysql-server \
+    redis-server \
+    php8.4-fpm \
+    php8.4-cli \
+    php8.4-mysql \
+    php8.4-pdo \
+    php8.4-mbstring \
+    php8.4-xml \
+    php8.4-zip \
+    php8.4-gd \
+    php8.4-bcmath \
+    php8.4-curl \
+    php8.4-opcache \
+    php8.4-redis \
+    php8.4-pcntl \
+    curl \
+    git \
+    wget \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+
+# Create app user
+ARG UID=1000
+ARG GID=1000
+RUN groupadd -g ${GID} appgroup || true \
+    && useradd -u ${UID} -g appgroup -m appuser || true
+
+# Set working directory
+WORKDIR /var/www
+
+# Copy application files
+COPY --chown=appuser:appgroup . .
+
+# Configure PHP-FPM
+RUN mkdir -p /var/run/php && \
+    chown -R appuser:appgroup /var/run/php && \
+    sed -i 's/^user = .*/user = appuser/' /etc/php/8.4/fpm/pool.d/www.conf && \
+    sed -i 's/^group = .*/group = appgroup/' /etc/php/8.4/fpm/pool.d/www.conf && \
+    sed -i 's/^listen = .*/listen = 127.0.0.1:9000/' /etc/php/8.4/fpm/pool.d/www.conf
+
+# Configure Nginx
+RUN rm -f /etc/nginx/sites-enabled/default
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+RUN chown -R www-data:www-data /var/cache/nginx
+
+# Configure MySQL
+RUN mkdir -p /var/run/mysqld && \
+    chown -R mysql:mysql /var/run/mysqld && \
+    chown -R mysql:mysql /var/lib/mysql
+COPY docker/mysql/my.cnf /etc/mysql/conf.d/my.cnf
+
+# Configure Supervisor
+RUN mkdir -p /var/log/supervisor
+COPY <<EOF /etc/supervisor/conf.d/services.conf
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:mysql]
+command=/usr/sbin/mysqld --user=mysql
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/mysql.err.log
+stdout_logfile=/var/log/supervisor/mysql.out.log
+priority=1
+
+[program:redis]
+command=/usr/bin/redis-server --appendonly yes --bind 127.0.0.1
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/redis.err.log
+stdout_logfile=/var/log/supervisor/redis.out.log
+priority=2
+
+[program:php-fpm]
+command=/usr/sbin/php-fpm8.4 -F
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/php-fpm.err.log
+stdout_logfile=/var/log/supervisor/php-fpm.out.log
+priority=3
+
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/nginx.err.log
+stdout_logfile=/var/log/supervisor/nginx.out.log
+priority=4
+
+[program:queue]
+command=/bin/bash -c "cd /var/www && php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600"
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/queue.err.log
+stdout_logfile=/var/log/supervisor/queue.out.log
+user=appuser
+priority=5
+
+[program:scheduler]
+command=/bin/bash -c "cd /var/www && while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/supervisor/scheduler.err.log
+stdout_logfile=/var/log/supervisor/scheduler.out.log
+user=appuser
+priority=6
+EOF
+
+# Initialize MySQL data directory
+RUN mkdir -p /var/lib/mysql && \
+    chown -R mysql:mysql /var/lib/mysql && \
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql
+
+# Install Laravel dependencies
+RUN composer install --no-interaction --no-dev --optimize-autoloader
+
+# Create necessary directories
+RUN mkdir -p storage/app/public \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache && \
+    chown -R appuser:appgroup storage bootstrap
+
+# Copy startup script
+COPY <<'STARTUP_SCRIPT' /startup.sh
+#!/bin/bash
+set -e
+
+# Initialize MySQL if needed
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql
+fi
+
+# Wait for MySQL to be ready, then run migrations
+sleep 5
+mysql -u root << 'SQL'
+CREATE DATABASE IF NOT EXISTS ${DB_DATABASE:-uptime_monitor};
+CREATE USER IF NOT EXISTS '${DB_USERNAME:-uptime_user}'@'%' IDENTIFIED BY '${DB_PASSWORD:-secret}';
+GRANT ALL PRIVILEGES ON ${DB_DATABASE:-uptime_monitor}.* TO '${DB_USERNAME:-uptime_user}'@'%';
+FLUSH PRIVILEGES;
+SQL
+
+# Run Laravel migrations
+cd /var/www
+php artisan migrate --force
+
+# Start supervisor
+exec supervisord -c /etc/supervisor/conf.d/services.conf
+STARTUP_SCRIPT
+chmod +x /startup.sh
+
+EXPOSE 80 3306 6379 9000
+
+CMD ["/startup.sh"]

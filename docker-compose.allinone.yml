@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.allinone
+    container_name: uptime_app_allinone
+    restart: unless-stopped
+    working_dir: /var/www
+    ports:
+      - "${APP_PORT:-80}:80"
+      - "${DB_PORT:-3306}:3306"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - .:/var/www
+      - ./docker/php/php.ini:/etc/php/8.4/fpm/conf.d/local.ini
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - DB_HOST=127.0.0.1
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-uptime_monitor}
+      - DB_USERNAME=${DB_USERNAME:-uptime_user}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+
+volumes: {}
+
+networks: {}
