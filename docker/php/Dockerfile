@@ -1,103 +1,91 @@
-FROM php:8.4-fpm
+FROM php:8.4-fpm-alpine
 
-# System dependencies + nginx + supervisor
-RUN apt-get update && apt-get install -y \
-    git curl libpng-dev libonig-dev libxml2-dev \
-    libzip-dev zip unzip nginx supervisor \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+    git curl nginx supervisor \
+    libpng-dev oniguruma-dev libxml2-dev \
+    libzip-dev zip unzip bash
 
-# PHP extensions
 RUN docker-php-ext-install \
     pdo_mysql mbstring exif pcntl bcmath gd zip opcache
 
-# Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
-# Composer
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# copying application files
 COPY . .
 
-# Installing dependencies
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
-# Creating directories not present in git
 RUN mkdir -p storage/framework/{sessions,views,cache} \
-             storage/logs \
-             bootstrap/cache \
+             storage/logs bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Nginx config
-RUN echo 'server { \n\
-    listen 8080; \n\
-    root /app/public; \n\
-    index index.php; \n\
-    location / { try_files $uri $uri/ /index.php?$query_string; } \n\
-    location ~ \.php$ { \n\
-        fastcgi_pass 127.0.0.1:9000; \n\
-        include fastcgi_params; \n\
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \n\
-    } \n\
-}' > /etc/nginx/sites-enabled/default
+COPY <<'NGINX_CONF' /etc/nginx/http.d/default.conf
+server {
+    listen 8080;
+    root /app/public;
+    index index.php;
 
-RUN rm -f /etc/nginx/sites-enabled/default \
-    && echo 'server { \
-    listen 8080; \
-    root /app/public; \
-    index index.php; \
-    location / { try_files $uri $uri/ /index.php?$query_string; } \
-    location ~ \.php$ { \
-        fastcgi_pass 127.0.0.1:9000; \
-        fastcgi_index index.php; \
-        include fastcgi_params; \
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-# Supervisor config
-RUN echo '[supervisord]\n\
-nodaemon=true\n\
-logfile=/dev/null\n\
-logfile_maxbytes=0\n\
-\n\
-[program:php-fpm]\n\
-command=php-fpm -F\n\
-autostart=true\n\
-autorestart=true\n\
-stdout_logfile=/dev/stdout\n\
-stdout_logfile_maxbytes=0\n\
-stderr_logfile=/dev/stderr\n\
-stderr_logfile_maxbytes=0\n\
-\n\
-[program:nginx]\n\
-command=nginx -g "daemon off;"\n\
-autostart=true\n\
-autorestart=true\n\
-stdout_logfile=/dev/stdout\n\
-stdout_logfile_maxbytes=0\n\
-stderr_logfile=/dev/stderr\n\
-stderr_logfile_maxbytes=0\n\
-\n\
-[program:queue]\n\
-command=php /app/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600\n\
-autostart=true\n\
-autorestart=true\n\
-stdout_logfile=/dev/stdout\n\
-stdout_logfile_maxbytes=0\n\
-stderr_logfile=/dev/stderr\n\
-stderr_logfile_maxbytes=0\n\
-\n\
-[program:scheduler]\n\
-command=bash -c "while true; do php /app/artisan schedule:run --no-interaction; sleep 60; done"\n\
-autostart=true\n\
-autorestart=true\n\
-stdout_logfile=/dev/stdout\n\
-stdout_logfile_maxbytes=0\n\
-stderr_logfile=/dev/stderr\n\
-stderr_logfile_maxbytes=0' > /etc/supervisor/conf.d/supervisord.conf
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}
+NGINX_CONF
+
+COPY <<'SUPERVISOR_CONF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+logfile=/dev/null
+logfile_maxbytes=0
+
+[program:php-fpm]
+command=php-fpm -F
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:nginx]
+command=nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:queue]
+command=php /app/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:scheduler]
+command=bash -c "while true; do php /app/artisan schedule:run --no-interaction; sleep 60; done"
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+SUPERVISOR_CONF
 
 EXPOSE 8080
 
