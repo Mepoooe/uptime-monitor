@@ -89,4 +89,4 @@ SUPERVISOR_CONF
 
 EXPOSE 8080
 
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
