@@ -2,6 +2,6 @@
 dockerfilePath = "docker/php/Dockerfile"
 
 [deploy]
-startCommand = "php artisan migrate --force && supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
+startCommand = "php artisan migrate --force && php artisan optimize && $(which supervisord) -n -c /etc/supervisor/conf.d/supervisord.conf"
 healthcheckPath = "/up"
 healthcheckTimeout = 60
