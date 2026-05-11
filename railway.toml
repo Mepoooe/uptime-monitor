@@ -1,2 +1,4 @@
 [deploy]
-startCommand = "php artisan optimize:clear && php artisan migrate --force && php artisan optimize && /usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
+startCommand = "php artisan migrate --force && supervisord -n -c /etc/supervisor/conf.d/supervisord.conf"
+healthcheckPath = "/up"
+healthcheckTimeout = 60
