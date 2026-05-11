@@ -44,49 +44,6 @@ server {
 }
 NGINX_CONF
 
-COPY <<'SUPERVISOR_CONF' /etc/supervisor/conf.d/supervisord.conf
-[supervisord]
-nodaemon=true
-logfile=/dev/null
-logfile_maxbytes=0
-
-[program:php-fpm]
-command=php-fpm -F
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-
-[program:nginx]
-command=nginx -g "daemon off;"
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-
-[program:queue]
-command=php /app/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-
-[program:scheduler]
-command=bash -c "while true; do php /app/artisan schedule:run --no-interaction; sleep 60; done"
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-SUPERVISOR_CONF
-
 EXPOSE 8080
 
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
