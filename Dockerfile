@@ -17,7 +17,11 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
+# Copy everything EXCEPT .env (see .dockerignore)
 COPY . .
+
+# Remove any .env that might have been copied
+RUN rm -f /app/.env /app/.env.local /app/.env.production
 
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
@@ -29,12 +33,7 @@ RUN mkdir -p storage/framework/sessions \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache public
 
-# Copy nginx config
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
-
-# Setup supervisor and entrypoint
-RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d
-
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /app/entrypoint.sh
 
@@ -43,4 +42,3 @@ RUN chmod +x /app/entrypoint.sh
 EXPOSE 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-
