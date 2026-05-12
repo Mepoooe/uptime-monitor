@@ -35,8 +35,6 @@ dockerfilePath = "Dockerfile"
 port = 8080
 healthcheckPath = "/up"
 healthcheckTimeout = 60
-restartPolicyType = "on-failure"
-restartPolicyMaxRetries = 5
 ```
 
 ## Required Environment Variables
