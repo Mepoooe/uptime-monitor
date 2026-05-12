@@ -1,5 +1,7 @@
 FROM php:8.4-fpm-alpine
 
+ARG CACHE_BUST=2
+
 RUN apk add --no-cache \
     git curl nginx ca-certificates supervisor \
     libpng-dev oniguruma-dev libxml2-dev \
