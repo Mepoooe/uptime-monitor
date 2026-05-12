@@ -41,6 +41,15 @@ COPY docker/entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
+RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d \
+    && mkdir -p storage/framework/sessions \
+               storage/framework/views \
+               storage/framework/cache \
+               storage/logs \
+               bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache public
+
 EXPOSE 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
