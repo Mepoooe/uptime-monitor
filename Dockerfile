@@ -32,4 +32,4 @@ COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "export NGINX_PORT=${PORT:-8080} && envsubst '${NGINX_PORT}' < /etc/nginx/http.d/default.conf > /etc/nginx/http.d/default.conf.tmp && mv /etc/nginx/http.d/default.conf.tmp /etc/nginx/http.d/default.conf && php-fpm -D && nginx -g 'daemon off;'"]
