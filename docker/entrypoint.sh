@@ -31,17 +31,17 @@ if grep -q "^APP_KEY=$" /app/.env; then
     php /app/artisan key:generate --force 2>/dev/null || true
 fi
 
-# Run migrations if database is available
-if [ -z "$SKIP_MIGRATIONS" ]; then
+if [ "${RUN_MIGRATIONS_ON_STARTUP}" = "1" ] && [ -z "$SKIP_MIGRATIONS" ]; then
     echo "Running database migrations..."
     php /app/artisan migrate --force || echo "Migration skipped (database may not be ready)"
 fi
 
-# Cache config and routes for performance
-echo "Caching configuration..."
-php /app/artisan config:cache 2>/dev/null || true
-php /app/artisan route:cache 2>/dev/null || true
-php /app/artisan view:cache 2>/dev/null || true
+if [ "${RUN_CACHE_ON_STARTUP}" = "1" ]; then
+    echo "Caching configuration..."
+    php /app/artisan config:cache 2>/dev/null || true
+    php /app/artisan route:cache 2>/dev/null || true
+    php /app/artisan view:cache 2>/dev/null || true
+fi
 
 echo "Starting supervisor..."
 

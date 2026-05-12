@@ -77,7 +77,7 @@ This repository includes a production Dockerfile and Railway config.
 
 - Dynamic port binding via Railway `PORT`
 - Healthcheck endpoint: `/up`
-- Auto migration on startup (can be disabled with `SKIP_MIGRATIONS=1`)
+- Fast boot by default; migrations are optional on startup
 - Support for `DATABASE_URL` and `REDIS_URL`
 - Redis fallback when not configured:
    - `CACHE_DRIVER=file`
@@ -109,6 +109,12 @@ The web container serves HTTP traffic. For continuous checks in production, you 
 - scheduler (`php artisan schedule:run` every minute)
 
 On Docker Compose this is already covered by separate containers.
+
+Optional startup flags for Railway:
+
+- `RUN_MIGRATIONS_ON_STARTUP=1`
+- `RUN_CACHE_ON_STARTUP=1`
+- `SKIP_MIGRATIONS=1` to suppress startup migrations even when enabled
 
 
 

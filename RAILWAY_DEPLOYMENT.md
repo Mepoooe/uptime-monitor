@@ -8,8 +8,7 @@ This project is ready to deploy to Railway via Dockerfile.
 - Healthcheck endpoint is `GET /up`.
 - Startup runs:
    - `php artisan key:generate` (only if `APP_KEY` is empty)
-   - `php artisan migrate --force` (unless `SKIP_MIGRATIONS` is set)
-   - config/route/view cache warmup
+   - optional startup maintenance only when explicitly enabled
 - MySQL and Redis URL variables are supported:
    - `DATABASE_URL`
    - `REDIS_URL`
@@ -58,7 +57,13 @@ REDIS_URL=... # optional
 
 ## Migrations
 
-Migrations run automatically on container startup.
+Migrations do not block container startup by default.
+
+If you want the container to run them on boot, set:
+
+```env
+RUN_MIGRATIONS_ON_STARTUP=1
+```
 
 If you need to skip migrations for a deploy:
 
@@ -82,6 +87,12 @@ For continuous background monitoring in production, also run:
 - scheduler trigger (`php artisan schedule:run` every minute)
 
 You can do this with separate Railway services or external cron.
+
+If you want config/route/view cache warming on startup, set:
+
+```env
+RUN_CACHE_ON_STARTUP=1
+```
 
 ## Local Smoke Test Before Deploy
 
