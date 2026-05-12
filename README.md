@@ -44,6 +44,8 @@ Demo credentials:
 - Email: `demo@example.com`
 - Password: `password`
 
+These demo credentials and sample domains are created by the database seeder used by `make install` and `make fresh`.
+
 ### Manual setup (if no Make)
 
 ```bash
@@ -66,7 +68,6 @@ make fresh          # Migrate fresh + seed
 make shell          # Bash in app container
 make logs           # Tail all logs
 make check          # Manually trigger domain checks
-make test           # Run the test suite
 ```
 
 ## Railway Deployment
