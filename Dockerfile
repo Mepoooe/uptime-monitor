@@ -1,7 +1,7 @@
 FROM php:8.4-fpm-alpine
 
 RUN apk add --no-cache \
-    git curl nginx \
+    git curl nginx ca-certificates supervisor \
     libpng-dev oniguruma-dev libxml2-dev \
     libzip-dev zip unzip bash
 
@@ -26,11 +26,21 @@ RUN mkdir -p storage/framework/sessions \
              storage/framework/cache \
              storage/logs \
              bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache public
 
+# Copy nginx config
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+
+# Setup supervisor and entrypoint
+RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d
+
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 

@@ -1,6 +1,6 @@
 # Uptime Monitor
 
-A domain availability monitoring service built with **Laravel 12**, **MySQL 8**, **Redis**, and **Docker**.
+A domain availability monitoring service built with **Laravel 13**, **MySQL 8**, **Redis**, and **Docker**.
 
 ## Features
 
@@ -68,6 +68,47 @@ make logs           # Tail all logs
 make check          # Manually trigger domain checks
 make test           # Run the test suite
 ```
+
+## Railway Deployment
+
+This repository includes a production Dockerfile and Railway config.
+
+### What Works Out of the Box
+
+- Dynamic port binding via Railway `PORT`
+- Healthcheck endpoint: `/up`
+- Auto migration on startup (can be disabled with `SKIP_MIGRATIONS=1`)
+- Support for `DATABASE_URL` and `REDIS_URL`
+- Redis fallback when not configured:
+   - `CACHE_DRIVER=file`
+   - `SESSION_DRIVER=file`
+   - `QUEUE_CONNECTION=sync`
+
+### Minimal Variables for Railway
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://<your-railway-domain>
+LOG_CHANNEL=stderr
+DB_CONNECTION=mysql
+```
+
+Linked services usually provide:
+
+- `DATABASE_URL`
+- `REDIS_URL` (optional)
+
+Detailed step-by-step guide is in [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md).
+
+### Background Processing in Production
+
+The web container serves HTTP traffic. For continuous checks in production, you should also run:
+
+- queue worker (`php artisan queue:work`)
+- scheduler (`php artisan schedule:run` every minute)
+
+On Docker Compose this is already covered by separate containers.
 
 
 
