@@ -7,9 +7,7 @@ export PORT=${PORT:-8080}
 echo "Starting application on port $PORT"
 
 # Update nginx to listen on PORT for Railway deployments.
-sed -i "s/listen 80;/listen $PORT;/" /etc/nginx/http.d/default.conf
-sed -i 's#root /var/www/public;#root /app/public;#' /etc/nginx/http.d/default.conf
-sed -i 's/fastcgi_pass app:9000;/fastcgi_pass 127.0.0.1:9000;/' /etc/nginx/http.d/default.conf
+sed -i "s/PORT_PLACEHOLDER/$PORT/" /etc/nginx/http.d/default.conf
 
 # Create .env if not exists, otherwise update with environment variables
 if [ ! -f /app/.env ]; then
