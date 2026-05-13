@@ -1,5 +1,8 @@
 FROM php:8.4-fpm-alpine
 
+# bust cache
+ARG CACHE_BUST=2
+
 RUN apk add --no-cache \
     git curl nginx ca-certificates supervisor \
     libpng-dev oniguruma-dev libxml2-dev \
@@ -17,12 +20,10 @@ COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Copy everything EXCEPT .env (see .dockerignore)
 COPY . .
-RUN rm -f /app/.env
 
-# Remove any .env that might have been copied
-RUN rm -f /app/.env /app/.env.local /app/.env.production
+RUN rm -f /app/.env /app/.env.local /app/.env.production \
+    && rm -f /app/bootstrap/cache/*.php
 
 RUN composer install --no-dev --no-interaction --optimize-autoloader
 
@@ -31,6 +32,8 @@ RUN mkdir -p storage/framework/sessions \
              storage/framework/cache \
              storage/logs \
              bootstrap/cache \
+             /var/log/supervisor \
+             /etc/supervisor/conf.d \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache public
 
@@ -40,15 +43,6 @@ COPY docker/entrypoint.sh /app/entrypoint.sh
 
 RUN chmod +x /app/entrypoint.sh
 
-RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d \
-    && mkdir -p storage/framework/sessions \
-               storage/framework/views \
-               storage/framework/cache \
-               storage/logs \
-               bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache public
-
-EXPOSE 8080
+EXPOSE 9000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
