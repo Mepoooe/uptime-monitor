@@ -44,13 +44,6 @@ REDIS_PORT="${REDIS_PORT:-6379}"
 MAIL_MAILER=log
 EOF
 
-# If Redis is available — use it
-if [ -n "${REDIS_HOST}" ]; then
-    sed -i "s/CACHE_DRIVER=.*/CACHE_DRIVER=redis/" /app/.env
-    sed -i "s/SESSION_DRIVER=.*/SESSION_DRIVER=redis/" /app/.env
-    sed -i "s/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/" /app/.env
-fi
-
 # Generate APP_KEY if missing
 if grep -q 'APP_KEY=""' /app/.env || grep -q "^APP_KEY=$" /app/.env; then
     echo "Generating APP_KEY..."
