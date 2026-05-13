@@ -2,6 +2,6 @@
 dockerfilePath = "Dockerfile"
 
 [deploy]
-port = 8080
+startCommand = "/app/entrypoint.sh"
 healthcheckPath = "/up"
-healthcheckTimeout = 60
+healthcheckTimeout = 300

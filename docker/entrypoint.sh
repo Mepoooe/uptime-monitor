@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export PORT=${PORT:-9000}
+export PORT=${PORT:-8080}
 echo "==> Starting on port $PORT"
 
 # 1. Nginx port
