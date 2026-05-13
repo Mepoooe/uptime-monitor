@@ -9,6 +9,7 @@ echo "Starting application on port $PORT"
 sed -i "s/PORT_PLACEHOLDER/$PORT/" /etc/nginx/http.d/default.conf
 
 # --- ALWAYS recreate .env from scratch using environment variables ---
+rm -f /app/.env
 # Do NOT rely on .env file from image — Railway vars must win
 echo "Writing .env from environment variables..."
 

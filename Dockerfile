@@ -19,6 +19,7 @@ WORKDIR /app
 
 # Copy everything EXCEPT .env (see .dockerignore)
 COPY . .
+RUN rm -f /app/.env
 
 # Remove any .env that might have been copied
 RUN rm -f /app/.env /app/.env.local /app/.env.production
