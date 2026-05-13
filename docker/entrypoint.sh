@@ -1,69 +1,70 @@
 #!/bin/bash
 set -e
 
-# Railway provides PORT dynamically — never hardcode 8080 as final
-export PORT=${PORT:-8080}
-echo "Starting application on port $PORT"
+export PORT=${PORT:-9000}
+echo "==> Starting on port $PORT"
 
-# --- NGINX PORT ---
+# 1. Nginx port
 sed -i "s/PORT_PLACEHOLDER/$PORT/" /etc/nginx/http.d/default.conf
 
-# --- ALWAYS recreate .env from scratch using environment variables ---
+# 2. Delete any cached config from previous deploys
 rm -f /app/.env
-# Do NOT rely on .env file from image — Railway vars must win
-echo "Writing .env from environment variables..."
+rm -f /app/bootstrap/cache/config.php
+rm -f /app/bootstrap/cache/routes.php
+rm -f /app/bootstrap/cache/routes-v7.php
+rm -f /app/bootstrap/cache/services.php
+rm -f /app/bootstrap/cache/packages.php
 
-cat > /app/.env << EOF
-APP_NAME="${APP_NAME:-Laravel}"
-APP_ENV="${APP_ENV:-production}"
-APP_KEY="${APP_KEY:-}"
-APP_DEBUG="${APP_DEBUG:-false}"
-APP_URL="${APP_URL:-http://localhost}"
+# 3. Write .env from Railway environment variables
+cat > /app/.env << ENVEOF
+APP_NAME=UptimeMonitor
+APP_ENV=production
+APP_KEY=${APP_KEY}
+APP_DEBUG=false
+APP_URL=${APP_URL:-https://domain-monitor-a4f8.up.railway.app}
 
 LOG_CHANNEL=stderr
-LOG_LEVEL=debug
+LOG_LEVEL=error
 
-DB_CONNECTION="${DB_CONNECTION:-mysql}"
-DB_HOST="${DB_HOST:-}"
-DB_PORT="${DB_PORT:-3306}"
-DB_DATABASE="${DB_DATABASE:-}"
-DB_USERNAME="${DB_USERNAME:-}"
-DB_PASSWORD="${DB_PASSWORD:-}"
+DB_CONNECTION=mysql
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT:-3306}
+DB_DATABASE=${DB_DATABASE}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
 
-BROADCAST_DRIVER=log
-CACHE_DRIVER="${CACHE_DRIVER:-file}"
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_CONNECTION=sync
 FILESYSTEM_DISK=local
-QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
-SESSION_DRIVER="${SESSION_DRIVER:-file}"
 SESSION_LIFETIME=120
 
-REDIS_HOST="${REDIS_HOST:-}"
-REDIS_PASSWORD="${REDIS_PASSWORD:-null}"
-REDIS_PORT="${REDIS_PORT:-6379}"
+REDIS_CLIENT=phpredis
+REDIS_HOST=${REDIS_HOST}
+REDIS_PASSWORD=${REDIS_PASSWORD}
+REDIS_PORT=${REDIS_PORT:-6379}
 
-MAIL_MAILER=log
-EOF
+MAIL_MAILER=${MAIL_MAILER:-log}
+MAIL_HOST=${MAIL_HOST:-localhost}
+MAIL_PORT=${MAIL_PORT:-1025}
+MAIL_USERNAME=${MAIL_USERNAME}
+MAIL_PASSWORD=${MAIL_PASSWORD}
+MAIL_FROM_ADDRESS=noreply@uptime-monitor.app
+MAIL_FROM_NAME=UptimeMonitor
+ENVEOF
 
-# Generate APP_KEY if missing
-if grep -q 'APP_KEY=""' /app/.env || grep -q "^APP_KEY=$" /app/.env; then
-    echo "Generating APP_KEY..."
+echo "==> .env written"
+echo "==> DB: host=${DB_HOST} port=${DB_PORT} db=${DB_DATABASE} user=${DB_USERNAME}"
+
+# 4. Generate APP_KEY if empty
+if [ -z "${APP_KEY}" ]; then
+    echo "==> Generating APP_KEY..."
     php /app/artisan key:generate --force
 fi
 
-# Debug: show DB config (no password)
-echo "DB_HOST=${DB_HOST} DB_PORT=${DB_PORT} DB_DATABASE=${DB_DATABASE} DB_USERNAME=${DB_USERNAME}"
+# 5. Migrate with timeout so healthcheck doesn't fail
+echo "==> Running migrations..."
+timeout 25 php /app/artisan migrate --force 2>&1 || echo "==> Migration skipped"
 
-# Run migrations
-if [ "${RUN_MIGRATIONS_ON_STARTUP}" = "1" ]; then
-    echo "Running migrations..."
-    php /app/artisan migrate --force || echo "Migration failed — check DB connection"
-fi
-
-# Cache config/routes/views for production
-echo "Caching..."
-php /app/artisan config:clear 2>/dev/null || true
-php /app/artisan cache:clear --driver=file 2>/dev/null || true
-php /app/artisan view:clear 2>/dev/null || true
-
-echo "Starting supervisor..."
+echo "==> Starting supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
