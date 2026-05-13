@@ -61,9 +61,9 @@ fi
 
 # Cache config/routes/views for production
 echo "Caching..."
-php /app/artisan config:cache 2>/dev/null || true
-php /app/artisan route:cache 2>/dev/null || true
-php /app/artisan view:cache 2>/dev/null || true
+php /app/artisan config:clear 2>/dev/null || true
+php /app/artisan cache:clear --driver=file 2>/dev/null || true
+php /app/artisan view:clear 2>/dev/null || true
 
 echo "Starting supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
