@@ -13,8 +13,11 @@ return [
     | and used as needed; however, this mailer will be used by default.
     |
     */
-    'default' => env('APP_ENV') === 'production' ? env('MAIL_MAILER', 'smtp') : 'smtp',
+    'default' => env('MAIL_MAILER', 'smtp'),
 
+    'resend' => [
+        'transport' => 'resend',
+    ],
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
